@@ -141,6 +141,21 @@
         android:key="advanced_section_header"
         android:title="@string/advanced_section_header">
 
+
+        <com.android.settings.custom.preference.SystemSettingSwitchPreference
+            android:key="statusbar_colored_icons"
+            android:title="@string/statusbar_colored_icons_title"
+            android:summary="@string/statusbar_colored_icons_summary"
+            android:defaultValue="false"
+            android:order="33"/>
+
+        <com.android.settings.custom.preference.SystemSettingSwitchPreference
+            android:key="statusbar_notif_count"
+            android:title="@string/statusbar_notif_count_title"
+            android:summary="@string/statusbar_notif_count_summary"
+            android:defaultValue="false"
+            android:order="34"/>
+
         <!--Adaptive Notifications-->
         <Preference
             android:fragment="com.android.settings.notification.PoliteNotificationsPreferenceFragment"
