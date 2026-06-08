@@ -227,4 +227,10 @@
     <!-- Notification count -->
     <string name="statusbar_notif_count_title">Show notification count</string>
     <string name="statusbar_notif_count_summary">Display the number of pending notifications</string>
+
+    <!-- reTicker -->
+    <string name="reticker_title">reTicker</string>
+    <string name="reticker_summary">Replace heads-up notifications with a slim and compact ticker notification</string>
+    <string name="reticker_colored_title">Use colored background</string>
+    <string name="reticker_colored_summary">Color the ticker background using the posting app\'s dominant color</string>
 </resources>

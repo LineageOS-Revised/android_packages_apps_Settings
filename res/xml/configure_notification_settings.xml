@@ -156,6 +156,21 @@
             android:defaultValue="false"
             android:order="34"/>
 
+        <com.android.settings.custom.preference.SystemSettingSwitchPreference
+            android:key="reticker_status"
+            android:title="@string/reticker_title"
+            android:summary="@string/reticker_summary"
+            android:defaultValue="false"
+            android:order="35"/>
+
+        <com.android.settings.custom.preference.SystemSettingSwitchPreference
+            android:key="reticker_colored"
+            android:title="@string/reticker_colored_title"
+            android:summary="@string/reticker_colored_summary"
+            android:defaultValue="false"
+            android:dependency="reticker_status"
+            android:order="36"/>
+
         <!--Adaptive Notifications-->
         <Preference
             android:fragment="com.android.settings.notification.PoliteNotificationsPreferenceFragment"
