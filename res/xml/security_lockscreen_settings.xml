@@ -101,6 +101,12 @@
             android:summary="@string/lockscreen_weather_summary"
             android:fragment="com.android.settings.display.LockscreenWeatherFragment"
             settings:controller="com.android.settings.display.WeatherSettingsPreferenceController" />
+
+        <Preference
+            android:key="lockscreen_media_art_settings"
+            android:title="@string/lockscreen_media_art_title"
+            android:summary="@string/lockscreen_media_art_summary"
+            android:fragment="com.android.settings.display.LockscreenMediaArtSettingsFragment" />
     </PreferenceCategory>
 
     <PreferenceCategory
