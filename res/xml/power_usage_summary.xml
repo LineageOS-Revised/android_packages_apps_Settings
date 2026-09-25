@@ -93,6 +93,13 @@
     </com.android.settingslib.widget.UntitledPreferenceCategory>
 
     <com.android.settingslib.widget.UntitledPreferenceCategory
+        android:key="thermal_category">
+        <lineageos.preference.LineagePartsPreference
+            android:key="thermal"
+            settings:requiresService="lineagethermal" />
+    </com.android.settingslib.widget.UntitledPreferenceCategory>
+
+    <com.android.settingslib.widget.UntitledPreferenceCategory
         android:key="percentage_category">
         <SwitchPreferenceCompat
             android:key="status_bar_show_battery_percent"
