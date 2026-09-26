@@ -603,6 +603,13 @@
     <!-- Whether to show Smooth Display feature in Settings Options -->
     <bool name="config_show_smooth_display">false</bool>
 
+    <!-- Whether the device supports bypass charging through the OPlus PLC node.
+         Device overlays can enable this for supported hardware. -->
+    <bool name="config_bypassChargeSupported">false</bool>
+
+    <!-- sysfs node used to control bypass charging. -->
+    <string name="config_bypassChargeSysfsPath" translatable="false">/sys/class/oplus_chg/common/plc</string>
+
     <!-- Whether to show emergency settings in top-level Settings -->
     <bool name="config_show_emergency_settings">true</bool>
 

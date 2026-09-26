@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     SPDX-FileCopyrightText: The LineageOS Project
+     SPDX-License-Identifier: Apache-2.0
+-->
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Title of the bypass charging switch on the battery screen. [CHAR LIMIT=40] -->
+    <string name="bypass_charge_title">Bypass charging</string>
+
+    <!-- Summary shown when bypass charging is available and a charger is connected. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_summary_off">Power the device directly from a wired charger</string>
+
+    <!-- Summary shown while bypass charging is active. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_summary_on">Powered by the charger, battery charging is paused</string>
+
+    <!-- Summary shown while the charger driver is switching bypass charging on. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_summary_pending">Waiting to activate bypass charging</string>
+
+    <!-- Summary shown when the connected charger cannot do bypass charging. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_summary_unavailable">Not available with this charger</string>
+
+    <!-- Summary shown while no wired charger is connected. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_summary_connect">Connect a wired charger to use bypass charging</string>
+
+    <!-- Toast shown when enabling bypass charging without a wired charger. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_connect_charger_toast">Connect a wired charger first</string>
+
+    <!-- Toast shown when the charger driver rejects the request. [CHAR LIMIT=NONE] -->
+    <string name="bypass_charge_failed_toast">Couldn\'t change bypass charging</string>
+
+    <!-- Keywords for the bypass charging switch. [CHAR LIMIT=NONE] -->
+    <string name="keywords_bypass_charge" translatable="false">bypass charging plc battery charge separation</string>
+</resources>

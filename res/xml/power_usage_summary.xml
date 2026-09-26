@@ -90,6 +90,14 @@
             android:title="@*lineageos.platform:string/charging_speed"
             settings:controller="com.android.settings.fuelgauge.ChargingSpeedPreferenceController"
             settings:requiresService="lineagehealth" />
+
+        <!-- Bypass charging -->
+        <SwitchPreferenceCompat
+            android:key="bypass_charge"
+            android:title="@string/bypass_charge_title"
+            android:summary="@string/bypass_charge_summary_off"
+            settings:controller="com.android.settings.fuelgauge.bypasscharge.BypassChargePreferenceController"
+            settings:keywords="@string/keywords_bypass_charge" />
     </com.android.settingslib.widget.UntitledPreferenceCategory>
 
     <com.android.settingslib.widget.UntitledPreferenceCategory
