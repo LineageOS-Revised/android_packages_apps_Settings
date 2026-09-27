@@ -202,4 +202,12 @@
     <string name="lockscreen_weather_wind_info_summary">Display current wind speed and direction</string>
     <string name="lockscreen_weather_humidity_info_title">Humidity info</string>
     <string name="lockscreen_weather_humidity_info_summary">Display current humidity in percentage</string>
+
+    <!-- Per-app refresh rate -->
+    <string name="per_app_refresh_rate_title">Per-app refresh rate</string>
+    <string name="per_app_refresh_rate_summary">Set a refresh rate for each app</string>
+    <string name="per_app_refresh_rate_apps_title">Apps</string>
+    <string name="per_app_refresh_rate_default">Default</string>
+    <string name="per_app_refresh_rate_search_hint">Search apps</string>
+    <string name="keywords_per_app_refresh_rate">per app refresh rate, frame rate, smoothness, hertz, hz</string>
 </resources>
