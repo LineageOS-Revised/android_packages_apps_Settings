@@ -214,4 +214,9 @@
     <!-- Ignore window secure -->
     <string name="ignore_window_secure_title">Ignore window secure flags</string>
     <string name="ignore_window_secure_summary">Remove screenshot and screenrecord limits for all apps. This can be convenient in some cases but may lead to privacy leaks.</string>
+
+    <!-- Face enrollment posture guidance (devices that require a specific posture) -->
+    <string name="face_enrolling_close_to_continue">Fold phone during setup</string>
+    <string name="face_enrolling_close_to_continue_description">The phone must be folded to set up or use Face Unlock</string>
+    <string name="face_enrolling_do_it_later">Do it later</string>
 </resources>

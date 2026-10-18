@@ -3157,6 +3157,12 @@
             android:theme="@style/GlifV4Theme.DayNight"
             android:screenOrientation="portrait"/>
 
+        <activity android:name=".biometrics.face.FaceEnrollFoldPage"
+            android:exported="false"
+            android:theme="@style/GlifV4Theme.DayNight"
+            android:configChanges="density|keyboard|keyboardHidden|orientation|screenLayout|screenSize|smallestScreenSize"
+            android:screenOrientation="nosensor"/>
+
         <activity android:name=".biometrics.BiometricHandoffActivity"
                   android:exported="false"/>
 
@@ -4680,6 +4686,7 @@
 
         <activity
             android:name=".sim.SimDialogActivity"
+            android:taskAffinity="com.android.settings.sim.SimDialogActivity"
             android:theme="@style/Theme.AlertDialog.SimConfirmDialog"
             android:label="@string/sim_settings_title"
             android:launchMode="singleTop"
