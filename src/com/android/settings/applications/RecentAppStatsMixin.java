@@ -146,9 +146,14 @@ public class RecentAppStatsMixin implements LifecycleObserver, OnStart {
                 usageStatsManager = Optional.ofNullable(userHandle).map(
                         handle -> mContext.getSystemService(UsageStatsManager.class));
             } else {
-                usageStatsManager = Optional.ofNullable(userHandle).map(
-                        handle -> mContext.createContextAsUser(handle, /* flags */ 0)
-                                .getSystemService(UsageStatsManager.class));
+                try {
+                    usageStatsManager = Optional.ofNullable(userHandle).map(
+                            handle -> mContext.createContextAsUser(handle, /* flags */ 0)
+                                    .getSystemService(UsageStatsManager.class));
+                } catch (IllegalStateException e) {
+                    Log.w(TAG, "Unable to query usage stats for user " + userId, e);
+                    continue;
+                }
             }
 
             List<UsageStats> profileStats = usageStatsManager

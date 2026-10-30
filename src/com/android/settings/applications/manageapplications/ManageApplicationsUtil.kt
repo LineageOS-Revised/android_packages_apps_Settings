@@ -23,6 +23,7 @@ import com.android.settings.Settings.AppBatteryUsageActivity
 import com.android.settings.Settings.ChangeNfcTagAppsActivity
 import com.android.settings.Settings.ChangeWifiStateActivity
 import com.android.settings.Settings.ClonedAppsListActivity
+import com.android.settings.Settings.SandboxedAppsListActivity
 import com.android.settings.Settings.GamesStorageActivity
 import com.android.settings.Settings.HighPowerApplicationsActivity
 import com.android.settings.Settings.LongBackgroundTasksActivity
@@ -45,6 +46,7 @@ import com.android.settings.applications.manageapplications.ManageApplications.L
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_APPS_LOCALE
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_BATTERY_OPTIMIZATION
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_CLONED_APPS
+import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_SANDBOXED_APPS
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_GAMES
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_HIGH_POWER
 import com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_LONG_BACKGROUND_TASKS
@@ -100,6 +102,7 @@ object ManageApplicationsUtil {
             AppBatteryUsageActivity::class to LIST_TYPE_BATTERY_OPTIMIZATION,
             LongBackgroundTasksActivity::class to LIST_TYPE_LONG_BACKGROUND_TASKS,
             ClonedAppsListActivity::class to LIST_TYPE_CLONED_APPS,
+            SandboxedAppsListActivity::class to LIST_TYPE_SANDBOXED_APPS,
             ChangeNfcTagAppsActivity::class to LIST_TYPE_NFC_TAG_APPS,
             TurnScreenOnSettingsActivity::class to LIST_TYPE_TURN_SCREEN_ON,
             UserAspectRatioAppListActivity::class to LIST_TYPE_USER_ASPECT_RATIO_APPS,

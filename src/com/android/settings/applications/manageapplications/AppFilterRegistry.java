@@ -30,6 +30,7 @@ import com.android.settings.applications.AppStateMediaManagementAppsBridge;
 import com.android.settings.applications.AppStateNotificationBridge;
 import com.android.settings.applications.AppStateOverlayBridge;
 import com.android.settings.applications.AppStatePowerBridge;
+import com.android.settings.applications.AppStateSandboxedAppsBridge;
 import com.android.settings.applications.AppStateTurnScreenOnBridge;
 import com.android.settings.applications.AppStateUsageBridge;
 import com.android.settings.applications.AppStateWriteSettingsBridge;
@@ -69,6 +70,7 @@ public class AppFilterRegistry {
                 FILTER_APPS_CLONE,
                 FILTER_APPS_NFC_TAG,
                 FILTER_APPS_TURN_SCREEN_ON,
+                FILTER_APPS_SANDBOX,
             })
     @interface FilterType {}
 
@@ -101,8 +103,9 @@ public class AppFilterRegistry {
     public static final int FILTER_APPS_CLONE = 25;
     public static final int FILTER_APPS_NFC_TAG = 26;
     public static final int FILTER_APPS_TURN_SCREEN_ON = 27;
-    private static final int NUM_FILTER_ENTRIES = 28;
-    // Next id: 28. If you add an entry here, please change NUM_FILTER_ENTRIES.
+    public static final int FILTER_APPS_SANDBOX = 28;
+    private static final int NUM_FILTER_ENTRIES = 29;
+    // Next id: 29. If you add an entry here, please change NUM_FILTER_ENTRIES.
 
     private static AppFilterRegistry sRegistry;
 
@@ -268,6 +271,13 @@ public class AppFilterRegistry {
                         FILTER_APPS_CLONE,
                         R.string.cloned_apps_dashboard_title);
 
+        // Apps that can be sandboxed or are sandboxed.
+        mFilters[FILTER_APPS_SANDBOX] =
+                new AppFilterItem(
+                        AppStateSandboxedAppsBridge.FILTER_APPS_SANDBOX,
+                        FILTER_APPS_SANDBOX,
+                        R.string.sandboxed_apps_dashboard_title);
+
         // Apps that are nfc tag allowlisted.
         mFilters[FILTER_APPS_NFC_TAG] =
                 new AppFilterItem(
@@ -320,6 +330,8 @@ public class AppFilterRegistry {
                 return FILTER_LONG_BACKGROUND_TASKS;
             case ManageApplications.LIST_TYPE_CLONED_APPS:
                 return FILTER_APPS_CLONE;
+            case ManageApplications.LIST_TYPE_SANDBOXED_APPS:
+                return FILTER_APPS_SANDBOX;
             case ManageApplications.LIST_TYPE_NFC_TAG_APPS:
                 return FILTER_APPS_NFC_TAG;
             case ManageApplications.LIST_TYPE_TURN_SCREEN_ON:

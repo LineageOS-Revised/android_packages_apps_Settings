@@ -258,4 +258,19 @@
         <item>4</item>
         <item>5</item>
     </string-array>
+
+    <!-- Sandboxed apps -->
+    <string name="sandboxed_apps_dashboard_title">Sandboxed apps</string>
+    <string name="desc_sandboxed_apps_intro_text">Run apps in an isolated sandbox. Sandboxed apps have their own data, files, contacts and accounts, separate from the rest of your apps.</string>
+    <string name="sandboxed_apps_summary"><xliff:g id="sandboxed_apps_count">%1$d</xliff:g> sandboxed, <xliff:g id="available_apps_count">%2$d</xliff:g> available</string>
+    <string name="sandboxed_app_creation_summary">Adding to sandbox\u2026</string>
+    <string name="sandboxed_app_summary">Sandboxed</string>
+    <string name="sandboxed_app_main_copy_summary">Also in sandbox</string>
+    <string name="sandboxed_app_add_description">Add to sandbox</string>
+    <string name="sandboxed_app_remove_description">Remove from sandbox</string>
+    <string name="sandboxed_app_remove_main_description">Remove from main profile</string>
+    <string name="pause_sandbox">Pause sandbox</string>
+    <string name="resume_sandbox">Resume sandbox</string>
+    <string name="delete_sandbox">Delete sandbox</string>
+    <string name="delete_sandbox_failure">Deleting sandbox failed</string>
 </resources>

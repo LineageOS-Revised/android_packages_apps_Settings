@@ -75,6 +75,21 @@
             android:targetPackage="${applicationId}"/>
     </Preference>
 
+    <Preference
+        android:key="sandboxed_apps"
+        android:title="@string/sandboxed_apps_dashboard_title"
+        android:summary="@string/summary_placeholder"
+        android:order="-994"
+        settings:controller="com.android.settings.applications.SandboxedAppsPreferenceController"
+        android:fragment="com.android.settings.applications.manageapplications.ManageApplications">
+        <extra
+            android:name="classname"
+            android:value="com.android.settings.Settings$SandboxedAppsListActivity"/>
+        <intent
+            android:action="org.lineageos.settings.MANAGE_SANDBOXED_APPS"
+            android:targetPackage="${applicationId}"/>
+    </Preference>
+
     <PreferenceCategory
         android:key="dashboard_tile_placeholder"
         android:order="10"/>

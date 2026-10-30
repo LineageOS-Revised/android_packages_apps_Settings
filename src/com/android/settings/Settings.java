@@ -437,6 +437,7 @@ public class Settings extends SettingsActivity {
     public static class NotificationExcludeClassificationActivity extends SettingsActivity { /* empty */ }
     /** Activity to manage Cloned Apps page */
     public static class ClonedAppsListActivity extends SettingsActivity { /* empty */ }
+    public static class SandboxedAppsListActivity extends SettingsActivity { /* empty */ }
     /** Activity to manage Aspect Ratio app list page */
     public static class UserAspectRatioAppListActivity extends SettingsActivity { /* empty */ }
     /** Activity to manage Aspect Ratio app page */

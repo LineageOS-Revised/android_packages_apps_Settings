@@ -112,6 +112,7 @@ import com.android.settings.Settings.MediaManagementAppsActivity;
 import com.android.settings.Settings.NotificationAppListActivity;
 import com.android.settings.Settings.NotificationReviewPermissionsActivity;
 import com.android.settings.Settings.OverlaySettingsActivity;
+import com.android.settings.Settings.SandboxedAppsListActivity;
 import com.android.settings.Settings.TurnScreenOnSettingsActivity;
 import com.android.settings.Settings.UsageAccessSettingsActivity;
 import com.android.settings.Settings.WriteSettingsActivity;
@@ -132,6 +133,7 @@ import com.android.settings.applications.AppStateNotificationBridge;
 import com.android.settings.applications.AppStateNotificationBridge.NotificationsSentState;
 import com.android.settings.applications.AppStateOverlayBridge;
 import com.android.settings.applications.AppStatePowerBridge;
+import com.android.settings.applications.AppStateSandboxedAppsBridge;
 import com.android.settings.applications.AppStateTurnScreenOnBridge;
 import com.android.settings.applications.AppStateUsageBridge;
 import com.android.settings.applications.AppStateUsageBridge.UsageState;
@@ -278,6 +280,7 @@ public class ManageApplications extends InstrumentedFragment
     public static final int LIST_TYPE_USER_ASPECT_RATIO_APPS = 20;
     public static final int LIST_TYPE_NOTIFICATION_EXCLUDE_SUMMARIZATION = 21;
     public static final int LIST_TYPE_NOTIFICATION_EXCLUDE_CLASSIFICATION = 22;
+    public static final int LIST_TYPE_SANDBOXED_APPS = 1000;
 
     // List types that should show instant apps.
     public static final Set<Integer> LIST_TYPES_WITH_INSTANT = new ArraySet<>(Arrays.asList(
@@ -591,6 +594,7 @@ public class ManageApplications extends InstrumentedFragment
             case LIST_TYPE_LONG_BACKGROUND_TASKS:
                 return SettingsEnums.LONG_BACKGROUND_TASKS;
             case LIST_TYPE_CLONED_APPS:
+            case LIST_TYPE_SANDBOXED_APPS:
                 return SettingsEnums.CLONED_APPS;
             case LIST_TYPE_NFC_TAG_APPS:
                 return SettingsEnums.CONFIG_NFC_TAG_APP_PREF;
@@ -890,10 +894,10 @@ public class ManageApplications extends InstrumentedFragment
 
         mOptionsMenu.findItem(R.id.show_system).setVisible(!mShowSystem
                 && mListType != LIST_TYPE_HIGH_POWER && mListType != LIST_TYPE_APPS_LOCALE
-                && mListType != LIST_TYPE_CLONED_APPS);
+                && mListType != LIST_TYPE_CLONED_APPS && mListType != LIST_TYPE_SANDBOXED_APPS);
         mOptionsMenu.findItem(R.id.hide_system).setVisible(mShowSystem
                 && mListType != LIST_TYPE_HIGH_POWER && mListType != LIST_TYPE_APPS_LOCALE
-                && mListType != LIST_TYPE_CLONED_APPS);
+                && mListType != LIST_TYPE_CLONED_APPS && mListType != LIST_TYPE_SANDBOXED_APPS);
 
         mOptionsMenu.findItem(R.id.reset_app_preferences).setVisible(mListType == LIST_TYPE_MAIN);
 
@@ -909,6 +913,15 @@ public class ManageApplications extends InstrumentedFragment
                 .setVisible(mListType == LIST_TYPE_CLONED_APPS  && DeviceConfig.getBoolean(
                         DeviceConfig.NAMESPACE_APP_CLONING, PROPERTY_DELETE_ALL_APP_CLONES_ENABLED,
                 true) && Utils.getCloneUserId(getContext()) != -1);
+        int sandboxUserId = mListType == LIST_TYPE_SANDBOXED_APPS
+                ? Utils.getSandboxUserId(getContext()) : -1;
+        boolean sandboxPaused = sandboxUserId != -1 && getContext().getSystemService(
+                UserManager.class).isQuietModeEnabled(UserHandle.of(sandboxUserId));
+        mOptionsMenu.findItem(R.id.pause_sandbox)
+                .setVisible(sandboxUserId != -1 && !sandboxPaused);
+        mOptionsMenu.findItem(R.id.resume_sandbox)
+                .setVisible(sandboxUserId != -1 && sandboxPaused);
+        mOptionsMenu.findItem(R.id.delete_sandbox).setVisible(sandboxUserId != -1);
     }
 
     @Override
@@ -963,6 +976,34 @@ public class ManageApplications extends InstrumentedFragment
                 Log.e(TAG, "Failed to remove cloned apps", e);
                 Toast.makeText(getContext(),
                         getContext().getString(R.string.delete_all_app_clones_failure),
+                        Toast.LENGTH_LONG).show();
+            }
+        } else if (i == R.id.pause_sandbox || i == R.id.resume_sandbox) {
+            int sandboxUserId = Utils.getSandboxUserId(getContext());
+            if (sandboxUserId == -1) {
+                return false;
+            }
+            getContext().getSystemService(UserManager.class).requestQuietModeEnabled(
+                    i == R.id.pause_sandbox, UserHandle.of(sandboxUserId));
+            getActivity().invalidateOptionsMenu();
+        } else if (i == R.id.delete_sandbox) {
+            int sandboxUserId = Utils.getSandboxUserId(getContext());
+            if (sandboxUserId == -1) {
+                return false;
+            }
+            IUserManager um = IUserManager.Stub.asInterface(
+                    ServiceManager.getService(Context.USER_SERVICE));
+            try {
+                if (um.removeUser(sandboxUserId)) {
+                    SandboxBackend.getInstance(getContext()).resetSandboxUserId();
+                    mApplications.rebuild();
+                } else {
+                    Log.e(TAG, "Failed to remove sandbox user");
+                }
+            } catch (RemoteException e) {
+                Log.e(TAG, "Failed to remove sandbox", e);
+                Toast.makeText(getContext(),
+                        getContext().getString(R.string.delete_sandbox_failure),
                         Toast.LENGTH_LONG).show();
             }
         } else {// Handle the home button
@@ -1138,6 +1179,8 @@ public class ManageApplications extends InstrumentedFragment
             screenTitle = R.string.long_background_tasks_title;
         } else if (className.equals(ClonedAppsListActivity.class.getName())) {
             screenTitle = R.string.cloned_apps_dashboard_title;
+        } else if (className.equals(SandboxedAppsListActivity.class.getName())) {
+            screenTitle = R.string.sandboxed_apps_dashboard_title;
         } else if (className.equals(ChangeNfcTagAppsActivity.class.getName())) {
             screenTitle = R.string.change_nfc_tag_apps_title;
         } else if (className.equals(TurnScreenOnSettingsActivity.class.getName())) {
@@ -1350,6 +1393,8 @@ public class ManageApplications extends InstrumentedFragment
                 mExtraInfoBridge = new AppStateLongBackgroundTasksBridge(mContext, mState, this);
             } else if (mManageApplications.mListType == LIST_TYPE_CLONED_APPS) {
                 mExtraInfoBridge = new AppStateClonedAppsBridge(mContext, mState, this);
+            } else if (mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS) {
+                mExtraInfoBridge = new AppStateSandboxedAppsBridge(mContext, mState, this);
             } else if (mManageApplications.mListType == LIST_TYPE_NFC_TAG_APPS) {
                 mExtraInfoBridge = new AppStateNfcTagAppsBridge(mContext, mState, this);
             } else if (mManageApplications.mListType == LIST_TYPE_TURN_SCREEN_ON) {
@@ -1477,6 +1522,14 @@ public class ManageApplications extends InstrumentedFragment
                     && viewType == VIEW_TYPE_TWO_TARGET) {
                 view = ApplicationViewHolder.newView(
                         parent, true, LIST_TYPE_CLONED_APPS);
+            } else if (mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS
+                    && viewType == VIEW_TYPE_APP_HEADER) {
+                view = ApplicationViewHolder.newHeader(parent,
+                        R.string.desc_sandboxed_apps_intro_text);
+            } else if (mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS
+                    && viewType == VIEW_TYPE_TWO_TARGET) {
+                view = ApplicationViewHolder.newView(
+                        parent, true, LIST_TYPE_SANDBOXED_APPS);
             } else {
                 view = ApplicationViewHolder.newView(parent, false /* twoTarget */,
                         mManageApplications.mListType);
@@ -1487,9 +1540,11 @@ public class ManageApplications extends InstrumentedFragment
         @Override
         public int getItemViewType(int position) {
             if (position == 0 && (mManageApplications.mListType == LIST_TYPE_APPS_LOCALE
-                    || mManageApplications.mListType == LIST_TYPE_CLONED_APPS)) {
+                    || mManageApplications.mListType == LIST_TYPE_CLONED_APPS
+                    || mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS)) {
                 return VIEW_TYPE_APP_HEADER;
-            } else if (mManageApplications.mListType == LIST_TYPE_CLONED_APPS) {
+            } else if (mManageApplications.mListType == LIST_TYPE_CLONED_APPS
+                    || mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS) {
                 return VIEW_TYPE_TWO_TARGET;
             }
             return VIEW_TYPE_APP;
@@ -1751,7 +1806,8 @@ public class ManageApplications extends InstrumentedFragment
         public int getItemCount() {
             int count = getApplicationCount();
             if (count != 0 && (mManageApplications.mListType == LIST_TYPE_APPS_LOCALE
-                    || mManageApplications.mListType == LIST_TYPE_CLONED_APPS)) {
+                    || mManageApplications.mListType == LIST_TYPE_CLONED_APPS
+                    || mManageApplications.mListType == LIST_TYPE_SANDBOXED_APPS)) {
                 count++;
             }
             return count;
@@ -1902,6 +1958,7 @@ public class ManageApplications extends InstrumentedFragment
                     holder.setSummary(LongBackgroundTasksDetails.getSummary(mContext, entry));
                     break;
                 case LIST_TYPE_CLONED_APPS:
+                case LIST_TYPE_SANDBOXED_APPS:
                     holder.setSummary(null);
                     break;
                 case LIST_TYPE_NFC_TAG_APPS:
@@ -1937,6 +1994,11 @@ public class ManageApplications extends InstrumentedFragment
                             holder.appCloneOnClickListener(entry, this,
                                     mManageApplications.getActivity()), entry);
                     break;
+                case LIST_TYPE_SANDBOXED_APPS:
+                    holder.updateSandboxWidget(mContext,
+                            holder.sandboxOnClickListener(entry, this,
+                                    mManageApplications.getActivity()), entry);
+                    break;
             }
         }
 
@@ -1950,7 +2012,8 @@ public class ManageApplications extends InstrumentedFragment
         public static int getApplicationPosition(int listType, int position) {
             int applicationPosition = position;
             // Adjust position due to header added.
-            if (listType == LIST_TYPE_APPS_LOCALE || listType == LIST_TYPE_CLONED_APPS) {
+            if (listType == LIST_TYPE_APPS_LOCALE || listType == LIST_TYPE_CLONED_APPS
+                    || listType == LIST_TYPE_SANDBOXED_APPS) {
                 applicationPosition = position > 0 ? position - 1 : RecyclerView.NO_POSITION;
             }
             return applicationPosition;

@@ -60,4 +60,16 @@
         android:id="@+id/delete_all_app_clones"
         android:title="@string/delete_all_app_clones"
         android:showAsAction="never" />
+    <item
+        android:id="@+id/pause_sandbox"
+        android:title="@string/pause_sandbox"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/resume_sandbox"
+        android:title="@string/resume_sandbox"
+        android:showAsAction="never" />
+    <item
+        android:id="@+id/delete_sandbox"
+        android:title="@string/delete_sandbox"
+        android:showAsAction="never" />
 </menu>

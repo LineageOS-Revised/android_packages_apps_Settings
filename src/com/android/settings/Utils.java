@@ -1444,6 +1444,20 @@ public final class Utils extends com.android.settingslib.Utils {
     }
 
     /**
+     * Returns user id of sandbox profile if present, else returns -1.
+     */
+    public static int getSandboxUserId(Context context) {
+        UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
+        for (UserHandle userHandle : userManager.getUserProfiles()) {
+            UserInfo userInfo = userManager.getUserInfo(userHandle.getIdentifier());
+            if (userInfo != null && userInfo.isSandboxProfile()) {
+                return userHandle.getIdentifier();
+            }
+        }
+        return -1;
+    }
+
+    /**
      * Returns if the current user is able to use Dreams.
      */
     public static boolean canCurrentUserDream(Context context) {

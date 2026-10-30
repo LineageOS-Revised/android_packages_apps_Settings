@@ -4493,6 +4493,18 @@
                        android:value="com.android.settings.applications.manageapplications.ManageApplications" />
         </activity>
 
+        <!-- Displays a list of apps available for sandboxing on the device -->
+        <activity android:name=".Settings$SandboxedAppsListActivity"
+                  android:label="@string/sandboxed_apps_dashboard_title"
+                  android:exported="true">
+            <intent-filter android:priority="1">
+                <action android:name="org.lineageos.settings.MANAGE_SANDBOXED_APPS" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <meta-data android:name="com.android.settings.FRAGMENT_CLASS"
+                       android:value="com.android.settings.applications.manageapplications.ManageApplications" />
+        </activity>
+
         <!-- Application-level notification settings page, same as above but only accessible
              internally from system server -->
         <activity android:name="Settings$NotificationReviewPermissionsActivity"

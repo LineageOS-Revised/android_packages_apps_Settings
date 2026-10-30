@@ -19,6 +19,7 @@ package com.android.settings.applications.manageapplications;
 import static com.android.settings.applications.manageapplications.ManageApplications.ApplicationsAdapter;
 import static com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_CLONED_APPS;
 import static com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_NONE;
+import static com.android.settings.applications.manageapplications.ManageApplications.LIST_TYPE_SANDBOXED_APPS;
 
 import android.app.settings.SettingsEnums;
 import android.content.Context;
@@ -42,6 +43,7 @@ import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.settings.R;
+import com.android.settings.applications.AppStateSandboxedAppsBridge;
 import com.android.settings.overlay.FeatureFactory;
 import com.android.settingslib.applications.ApplicationsState;
 import com.android.settingslib.applications.ApplicationsState.AppEntry;
@@ -95,7 +97,7 @@ public class ApplicationViewHolder extends RecyclerView.ViewHolder {
         ViewGroup widgetFrame = view.findViewById(android.R.id.widget_frame);
         if (twoTarget) {
             if (widgetFrame != null) {
-                if (listType == LIST_TYPE_CLONED_APPS) {
+                if (listType == LIST_TYPE_CLONED_APPS || listType == LIST_TYPE_SANDBOXED_APPS) {
                     LayoutInflater.from(parent.getContext())
                             .inflate(R.layout.preference_widget_add_progressbar, widgetFrame, true);
                 } else {
@@ -292,6 +294,71 @@ public class ApplicationViewHolder extends RecyclerView.ViewHolder {
                                 manageApplicationsActivity);
                     }
                 }
+            }
+        };
+    }
+
+    void updateSandboxWidget(Context context, View.OnClickListener onClickListener,
+            AppEntry entry) {
+        if (mAddIcon != null) {
+            if (entry.extraInfo instanceof Integer state
+                    && state != AppStateSandboxedAppsBridge.STATE_NOT_SANDBOXED) {
+                mAddIcon.setBackground(context.getDrawable(R.drawable.ic_trash_can));
+                if (state == AppStateSandboxedAppsBridge.STATE_SANDBOXED) {
+                    setSummary(R.string.sandboxed_app_summary);
+                    mAddIcon.setContentDescription(
+                            context.getString(R.string.sandboxed_app_remove_description));
+                } else {
+                    setSummary(R.string.sandboxed_app_main_copy_summary);
+                    mAddIcon.setContentDescription(
+                            context.getString(R.string.sandboxed_app_remove_main_description));
+                }
+            } else {
+                mAddIcon.setBackground(context.getDrawable(R.drawable.ic_add_24dp));
+                mAddIcon.setContentDescription(
+                        context.getString(R.string.sandboxed_app_add_description));
+            }
+            mAddIcon.setOnClickListener(onClickListener);
+        }
+    }
+
+    View.OnClickListener sandboxOnClickListener(AppEntry entry,
+            ApplicationsAdapter adapter, FragmentActivity manageApplicationsActivity) {
+        Context context = manageApplicationsActivity.getApplicationContext();
+        return v -> {
+            if (mWidgetContainer == null || !(entry.extraInfo instanceof Integer state)) {
+                return;
+            }
+            SandboxBackend sandboxBackend = SandboxBackend.getInstance(context);
+            String packageName = entry.info.packageName;
+            if (state == AppStateSandboxedAppsBridge.STATE_SANDBOXED) {
+                sandboxBackend.uninstallFromSandbox(packageName, manageApplicationsActivity);
+            } else if (state == AppStateSandboxedAppsBridge.STATE_MAIN_COPY) {
+                sandboxBackend.uninstallFromMain(packageName, manageApplicationsActivity);
+            } else {
+                mAddIcon.setVisibility(View.INVISIBLE);
+                mProgressBar.setVisibility(View.VISIBLE);
+                setSummary(R.string.sandboxed_app_creation_summary);
+
+                new AsyncTask<Void, Void, Integer>() {
+
+                    @Override
+                    protected Integer doInBackground(Void... unused) {
+                        return sandboxBackend.installInSandbox(packageName);
+                    }
+
+                    @Override
+                    protected void onPostExecute(Integer res) {
+                        mProgressBar.setVisibility(View.INVISIBLE);
+                        mAddIcon.setVisibility(View.VISIBLE);
+
+                        if (res != SandboxBackend.SUCCESS) {
+                            setSummary(null);
+                            return;
+                        }
+                        adapter.rebuild();
+                    }
+                }.execute();
             }
         };
     }
