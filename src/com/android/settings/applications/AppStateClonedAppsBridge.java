@@ -22,8 +22,10 @@ import static com.android.settingslib.applications.ApplicationsState.AppEntry;
 import static com.android.settingslib.applications.ApplicationsState.AppFilter;
 
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 import android.util.Log;
 
+import com.android.settings.R;
 import com.android.settings.Utils;
 import com.android.settingslib.applications.ApplicationsState;
 
@@ -76,12 +78,31 @@ public class AppStateClonedAppsBridge extends AppStateBaseBridge{
     protected void updateExtraInfo(AppEntry app, String pkg, int uid) {
         // Display package if allowlisted but not yet cloned.
         // Or if the app is present in clone profile alongwith being in allowlist.
-        if (mAllowedApps.contains(pkg)
+        if (isCloneable(mContext, app.info, mAllowedApps)
                 && ((!mCloneProfileApps.contains(pkg) || (app.isClonedProfile())))) {
             app.extraInfo = Boolean.TRUE;
         } else {
             app.extraInfo = Boolean.FALSE;
         }
+    }
+
+    public static boolean isCloneable(Context context, ApplicationInfo info,
+            List<String> allowedApps) {
+        if (info == null) {
+            return false;
+        }
+        if (Arrays.asList(context.getResources().getStringArray(
+                R.array.config_cloneable_apps_blocklist)).contains(info.packageName)) {
+            return false;
+        }
+        if (allowedApps.contains(info.packageName)) {
+            return true;
+        }
+        if ((info.flags & (ApplicationInfo.FLAG_SYSTEM
+                | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0) {
+            return false;
+        }
+        return context.getPackageManager().getLaunchIntentForPackage(info.packageName) != null;
     }
 
     public static final AppFilter FILTER_APPS_CLONE =

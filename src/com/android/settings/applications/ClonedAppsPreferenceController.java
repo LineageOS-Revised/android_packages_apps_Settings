@@ -80,16 +80,16 @@ public class ClonedAppsPreferenceController extends BasePreferenceController
 
             @Override
             protected Integer[] doInBackground(Void... unused) {
-                // Get list of allowlisted cloneable apps.
-                List<String> cloneableApps = Arrays.asList(
+                List<String> allowedApps = Arrays.asList(
                         mContext.getResources().getStringArray(
                                 com.android.internal.R.array.cloneable_apps));
-                List<String> primaryUserApps = mContext.getPackageManager()
-                        .getInstalledPackagesAsUser(/* flags*/ 0, UserHandle.myUserId()).stream()
+                List<String> cloneableApps = mContext.getPackageManager()
+                        .getInstalledApplicationsAsUser(/* flags*/ 0, UserHandle.myUserId())
+                        .stream()
+                        .filter(x -> AppStateClonedAppsBridge.isCloneable(
+                                mContext, x, allowedApps))
                         .map(x -> x.packageName).toList();
-                // Count number of installed apps in system user.
-                int availableAppsCount = (int) cloneableApps.stream()
-                        .filter(x -> primaryUserApps.contains(x)).count();
+                int availableAppsCount = cloneableApps.size();
 
                 int cloneUserId = Utils.getCloneUserId(mContext);
                 if (cloneUserId == -1) {
@@ -99,7 +99,7 @@ public class ClonedAppsPreferenceController extends BasePreferenceController
                 List<String> cloneProfileApps = mContext.getPackageManager()
                         .getInstalledPackagesAsUser(/* flags*/ 0, cloneUserId).stream()
                         .map(x -> x.packageName).toList();
-                // Count number of allowlisted app present in clone profile.
+                // Count number of cloneable app present in clone profile.
                 int clonedAppsCount = (int) cloneableApps.stream()
                         .filter(x -> cloneProfileApps.contains(x)).count();
 
