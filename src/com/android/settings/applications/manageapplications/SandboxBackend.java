@@ -33,16 +33,15 @@ public class SandboxBackend {
 
     public static final String TAG = "SandboxBackend";
     public static final int SUCCESS = 0;
+    public static final int MAX_SANDBOX_INSTANCES = 3;
     private static final int ERROR_CREATING_SANDBOX_USER = 1;
     private static final int ERROR_STARTING_SANDBOX_USER = 2;
     private static final int ERROR_INSTALLING_PACKAGE = 3;
     private static SandboxBackend sInstance;
     private final Context mContext;
-    private int mSandboxUserId;
 
     private SandboxBackend(Context context) {
         mContext = context;
-        mSandboxUserId = Utils.getSandboxUserId(context);
     }
 
     /** Returns the SandboxBackend instance. */
@@ -54,8 +53,8 @@ public class SandboxBackend {
     }
 
     /** Starts the uninstaller for the sandboxed instance of the given package. */
-    void uninstallFromSandbox(String packageName, FragmentActivity activity) {
-        uninstallForUser(packageName, UserHandle.of(mSandboxUserId), activity);
+    void uninstallFromSandbox(String packageName, int sandboxUserId, FragmentActivity activity) {
+        uninstallForUser(packageName, UserHandle.of(sandboxUserId), activity);
     }
 
     /** Starts the uninstaller for the main profile instance of the given package. */
@@ -73,14 +72,16 @@ public class SandboxBackend {
     }
 
     /**
-     * Installs another instance of given package in the sandbox profile.
+     * Installs another instance of given package in the first sandbox profile that doesn't
+     * have it yet.
      *
-     * <p> Creates the sandbox profile if it doesn't exist and starts it before installing.
+     * <p> Creates and starts a new sandbox profile if all existing ones have the package.
      */
     public int installInSandbox(String packageName) {
-        boolean newlyCreated = false;
+        int sandboxUserId = Utils.getSandboxUserIds(mContext).stream()
+                .filter(id -> !isInstalled(packageName, id)).findFirst().orElse(-1);
 
-        if (mSandboxUserId == -1) {
+        if (sandboxUserId == -1) {
             UserManager um = mContext.getSystemService(UserManager.class);
             UserHandle sandboxUserHandle;
             try {
@@ -93,13 +94,9 @@ public class SandboxBackend {
             if (sandboxUserHandle == null) {
                 return ERROR_CREATING_SANDBOX_USER;
             }
-            mSandboxUserId = sandboxUserHandle.getIdentifier();
-            newlyCreated = true;
-        }
-
-        if (newlyCreated) {
+            sandboxUserId = sandboxUserHandle.getIdentifier();
             try {
-                ActivityManager.getService().startProfile(mSandboxUserId);
+                ActivityManager.getService().startProfile(sandboxUserId);
             } catch (RemoteException e) {
                 Log.e(TAG, "Error starting sandbox user", e);
                 return ERROR_STARTING_SANDBOX_USER;
@@ -109,7 +106,7 @@ public class SandboxBackend {
         int res;
         try {
             res = AppGlobals.getPackageManager().installExistingPackageAsUser(
-                    packageName, mSandboxUserId,
+                    packageName, sandboxUserId,
                     INSTALL_ALL_WHITELIST_RESTRICTED_PERMISSIONS, INSTALL_REASON_USER, null);
         } catch (RemoteException e) {
             Log.e(TAG, "Error installing " + packageName + " in sandbox user", e);
@@ -122,12 +119,11 @@ public class SandboxBackend {
         return SUCCESS;
     }
 
-    public int getSandboxUserId() {
-        return mSandboxUserId;
-    }
-
-    /** Resets the cached sandbox user id after the profile has been removed. */
-    public void resetSandboxUserId() {
-        mSandboxUserId = -1;
+    private boolean isInstalled(String packageName, int userId) {
+        try {
+            return AppGlobals.getPackageManager().isPackageAvailable(packageName, userId);
+        } catch (RemoteException e) {
+            return false;
+        }
     }
 }

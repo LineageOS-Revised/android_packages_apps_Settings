@@ -187,6 +187,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -913,15 +914,16 @@ public class ManageApplications extends InstrumentedFragment
                 .setVisible(mListType == LIST_TYPE_CLONED_APPS  && DeviceConfig.getBoolean(
                         DeviceConfig.NAMESPACE_APP_CLONING, PROPERTY_DELETE_ALL_APP_CLONES_ENABLED,
                 true) && Utils.getCloneUserId(getContext()) != -1);
-        int sandboxUserId = mListType == LIST_TYPE_SANDBOXED_APPS
-                ? Utils.getSandboxUserId(getContext()) : -1;
-        boolean sandboxPaused = sandboxUserId != -1 && getContext().getSystemService(
-                UserManager.class).isQuietModeEnabled(UserHandle.of(sandboxUserId));
+        List<Integer> sandboxUserIds = mListType == LIST_TYPE_SANDBOXED_APPS
+                ? Utils.getSandboxUserIds(getContext()) : List.of();
+        UserManager userManager = getContext().getSystemService(UserManager.class);
+        boolean sandboxPaused = sandboxUserIds.stream()
+                .allMatch(id -> userManager.isQuietModeEnabled(UserHandle.of(id)));
         mOptionsMenu.findItem(R.id.pause_sandbox)
-                .setVisible(sandboxUserId != -1 && !sandboxPaused);
+                .setVisible(!sandboxUserIds.isEmpty() && !sandboxPaused);
         mOptionsMenu.findItem(R.id.resume_sandbox)
-                .setVisible(sandboxUserId != -1 && sandboxPaused);
-        mOptionsMenu.findItem(R.id.delete_sandbox).setVisible(sandboxUserId != -1);
+                .setVisible(!sandboxUserIds.isEmpty() && sandboxPaused);
+        mOptionsMenu.findItem(R.id.delete_sandbox).setVisible(!sandboxUserIds.isEmpty());
     }
 
     @Override
@@ -979,27 +981,21 @@ public class ManageApplications extends InstrumentedFragment
                         Toast.LENGTH_LONG).show();
             }
         } else if (i == R.id.pause_sandbox || i == R.id.resume_sandbox) {
-            int sandboxUserId = Utils.getSandboxUserId(getContext());
-            if (sandboxUserId == -1) {
-                return false;
+            UserManager userManager = getContext().getSystemService(UserManager.class);
+            for (int id : Utils.getSandboxUserIds(getContext())) {
+                userManager.requestQuietModeEnabled(i == R.id.pause_sandbox, UserHandle.of(id));
             }
-            getContext().getSystemService(UserManager.class).requestQuietModeEnabled(
-                    i == R.id.pause_sandbox, UserHandle.of(sandboxUserId));
             getActivity().invalidateOptionsMenu();
         } else if (i == R.id.delete_sandbox) {
-            int sandboxUserId = Utils.getSandboxUserId(getContext());
-            if (sandboxUserId == -1) {
-                return false;
-            }
             IUserManager um = IUserManager.Stub.asInterface(
                     ServiceManager.getService(Context.USER_SERVICE));
             try {
-                if (um.removeUser(sandboxUserId)) {
-                    SandboxBackend.getInstance(getContext()).resetSandboxUserId();
-                    mApplications.rebuild();
-                } else {
-                    Log.e(TAG, "Failed to remove sandbox user");
+                for (int id : Utils.getSandboxUserIds(getContext())) {
+                    if (!um.removeUser(id)) {
+                        Log.e(TAG, "Failed to remove sandbox user " + id);
+                    }
                 }
+                mApplications.rebuild();
             } catch (RemoteException e) {
                 Log.e(TAG, "Failed to remove sandbox", e);
                 Toast.makeText(getContext(),

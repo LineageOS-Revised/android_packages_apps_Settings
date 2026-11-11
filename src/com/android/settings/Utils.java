@@ -1444,17 +1444,15 @@ public final class Utils extends com.android.settingslib.Utils {
     }
 
     /**
-     * Returns user id of sandbox profile if present, else returns -1.
+     * Returns user ids of sandbox profiles in creation order.
      */
-    public static int getSandboxUserId(Context context) {
+    public static List<Integer> getSandboxUserIds(Context context) {
         UserManager userManager = (UserManager) context.getSystemService(Context.USER_SERVICE);
-        for (UserHandle userHandle : userManager.getUserProfiles()) {
-            UserInfo userInfo = userManager.getUserInfo(userHandle.getIdentifier());
-            if (userInfo != null && userInfo.isSandboxProfile()) {
-                return userHandle.getIdentifier();
-            }
-        }
-        return -1;
+        return userManager.getUserProfiles().stream().map(UserHandle::getIdentifier)
+                .filter(id -> {
+                    UserInfo userInfo = userManager.getUserInfo(id);
+                    return userInfo != null && userInfo.isSandboxProfile();
+                }).sorted().toList();
     }
 
     /**

@@ -20,6 +20,7 @@ import androidx.preference.PreferenceScreen;
 
 import com.android.settings.R;
 import com.android.settings.Utils;
+import com.android.settings.applications.manageapplications.SandboxBackend;
 import com.android.settings.core.BasePreferenceController;
 import com.android.settings.dashboard.profileselector.ProfileSelectFragment;
 
@@ -72,17 +73,15 @@ public class SandboxedAppsPreferenceController extends BasePreferenceController
                                 mContext, x, Collections.emptyList()))
                         .map(x -> x.packageName).toList();
 
-                int sandboxUserId = Utils.getSandboxUserId(mContext);
-                if (sandboxUserId == -1) {
-                    return new Integer[]{0, cloneableApps.size()};
-                }
-                List<String> sandboxApps = mContext.getPackageManager()
-                        .getInstalledApplicationsAsUser(0, sandboxUserId).stream()
+                List<String> sandboxApps = Utils.getSandboxUserIds(mContext).stream()
+                        .flatMap(id -> mContext.getPackageManager()
+                                .getInstalledApplicationsAsUser(0, id).stream())
                         .filter(x -> (x.flags & (ApplicationInfo.FLAG_SYSTEM
                                 | ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) == 0)
                         .map(x -> x.packageName).toList();
                 int available = (int) cloneableApps.stream()
-                        .filter(x -> !sandboxApps.contains(x)).count();
+                        .filter(x -> Collections.frequency(sandboxApps, x)
+                                < SandboxBackend.MAX_SANDBOX_INSTANCES).count();
                 return new Integer[]{sandboxApps.size(), available};
             }
 

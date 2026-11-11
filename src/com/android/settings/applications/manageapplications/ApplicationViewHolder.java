@@ -27,6 +27,7 @@ import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.UserHandle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,10 +40,12 @@ import android.widget.TextView;
 
 import androidx.annotation.StringRes;
 import androidx.annotation.VisibleForTesting;
+import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.FragmentActivity;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.android.settings.R;
+import com.android.settings.Utils;
 import com.android.settings.applications.AppStateSandboxedAppsBridge;
 import com.android.settings.overlay.FeatureFactory;
 import com.android.settingslib.applications.ApplicationsState;
@@ -302,10 +305,13 @@ public class ApplicationViewHolder extends RecyclerView.ViewHolder {
             AppEntry entry) {
         if (mAddIcon != null) {
             if (entry.extraInfo instanceof Integer state
-                    && state != AppStateSandboxedAppsBridge.STATE_NOT_SANDBOXED) {
+                    && (state == AppStateSandboxedAppsBridge.STATE_SANDBOXED
+                            || state == AppStateSandboxedAppsBridge.STATE_MAIN_COPY)) {
                 mAddIcon.setBackground(context.getDrawable(R.drawable.ic_trash_can));
                 if (state == AppStateSandboxedAppsBridge.STATE_SANDBOXED) {
-                    setSummary(R.string.sandboxed_app_summary);
+                    setSummary(context.getString(R.string.sandboxed_app_instance_summary,
+                            Utils.getSandboxUserIds(context).indexOf(
+                                    UserHandle.getUserId(entry.info.uid)) + 1));
                     mAddIcon.setContentDescription(
                             context.getString(R.string.sandboxed_app_remove_description));
                 } else {
@@ -314,6 +320,10 @@ public class ApplicationViewHolder extends RecyclerView.ViewHolder {
                             context.getString(R.string.sandboxed_app_remove_main_description));
                 }
             } else {
+                if (entry.extraInfo instanceof Integer state
+                        && state == AppStateSandboxedAppsBridge.STATE_PARTIALLY_SANDBOXED) {
+                    setSummary(R.string.sandboxed_app_main_copy_summary);
+                }
                 mAddIcon.setBackground(context.getDrawable(R.drawable.ic_add_24dp));
                 mAddIcon.setContentDescription(
                         context.getString(R.string.sandboxed_app_add_description));
@@ -332,34 +342,55 @@ public class ApplicationViewHolder extends RecyclerView.ViewHolder {
             SandboxBackend sandboxBackend = SandboxBackend.getInstance(context);
             String packageName = entry.info.packageName;
             if (state == AppStateSandboxedAppsBridge.STATE_SANDBOXED) {
-                sandboxBackend.uninstallFromSandbox(packageName, manageApplicationsActivity);
+                sandboxBackend.uninstallFromSandbox(packageName,
+                        UserHandle.getUserId(entry.info.uid), manageApplicationsActivity);
             } else if (state == AppStateSandboxedAppsBridge.STATE_MAIN_COPY) {
                 sandboxBackend.uninstallFromMain(packageName, manageApplicationsActivity);
+            } else if (state == AppStateSandboxedAppsBridge.STATE_PARTIALLY_SANDBOXED) {
+                new AlertDialog.Builder(manageApplicationsActivity)
+                        .setTitle(entry.label)
+                        .setItems(new CharSequence[]{
+                                context.getString(R.string.sandboxed_app_add_description),
+                                context.getString(R.string.sandboxed_app_remove_main_description)},
+                                (dialog, which) -> {
+                                    if (which == 0) {
+                                        addToSandbox(sandboxBackend, packageName, adapter);
+                                    } else {
+                                        sandboxBackend.uninstallFromMain(packageName,
+                                                manageApplicationsActivity);
+                                    }
+                                })
+                        .show();
             } else {
-                mAddIcon.setVisibility(View.INVISIBLE);
-                mProgressBar.setVisibility(View.VISIBLE);
-                setSummary(R.string.sandboxed_app_creation_summary);
-
-                new AsyncTask<Void, Void, Integer>() {
-
-                    @Override
-                    protected Integer doInBackground(Void... unused) {
-                        return sandboxBackend.installInSandbox(packageName);
-                    }
-
-                    @Override
-                    protected void onPostExecute(Integer res) {
-                        mProgressBar.setVisibility(View.INVISIBLE);
-                        mAddIcon.setVisibility(View.VISIBLE);
-
-                        if (res != SandboxBackend.SUCCESS) {
-                            setSummary(null);
-                            return;
-                        }
-                        adapter.rebuild();
-                    }
-                }.execute();
+                addToSandbox(sandboxBackend, packageName, adapter);
             }
         };
+    }
+
+    private void addToSandbox(SandboxBackend sandboxBackend, String packageName,
+            ApplicationsAdapter adapter) {
+        mAddIcon.setVisibility(View.INVISIBLE);
+        mProgressBar.setVisibility(View.VISIBLE);
+        setSummary(R.string.sandboxed_app_creation_summary);
+
+        new AsyncTask<Void, Void, Integer>() {
+
+            @Override
+            protected Integer doInBackground(Void... unused) {
+                return sandboxBackend.installInSandbox(packageName);
+            }
+
+            @Override
+            protected void onPostExecute(Integer res) {
+                mProgressBar.setVisibility(View.INVISIBLE);
+                mAddIcon.setVisibility(View.VISIBLE);
+
+                if (res != SandboxBackend.SUCCESS) {
+                    setSummary(null);
+                    return;
+                }
+                adapter.rebuild();
+            }
+        }.execute();
     }
 }

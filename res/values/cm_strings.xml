@@ -264,7 +264,7 @@
     <string name="desc_sandboxed_apps_intro_text">Run apps in an isolated sandbox. Sandboxed apps have their own data, files, contacts and accounts, separate from the rest of your apps.</string>
     <string name="sandboxed_apps_summary"><xliff:g id="sandboxed_apps_count">%1$d</xliff:g> sandboxed, <xliff:g id="available_apps_count">%2$d</xliff:g> available</string>
     <string name="sandboxed_app_creation_summary">Adding to sandbox\u2026</string>
-    <string name="sandboxed_app_summary">Sandboxed</string>
+    <string name="sandboxed_app_instance_summary">Sandbox <xliff:g id="instance">%1$d</xliff:g></string>
     <string name="sandboxed_app_main_copy_summary">Also in sandbox</string>
     <string name="sandboxed_app_add_description">Add to sandbox</string>
     <string name="sandboxed_app_remove_description">Remove from sandbox</string>

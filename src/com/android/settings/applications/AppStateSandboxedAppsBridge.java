@@ -13,10 +13,13 @@ import android.content.pm.ApplicationInfo;
 import android.os.UserHandle;
 
 import com.android.settings.Utils;
+import com.android.settings.applications.manageapplications.SandboxBackend;
 import com.android.settingslib.applications.ApplicationsState;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Filter to display apps that can be sandboxed, and sandboxed apps, on the Sandboxed Apps page.
@@ -26,9 +29,10 @@ public class AppStateSandboxedAppsBridge extends AppStateBaseBridge {
     public static final int STATE_NOT_SANDBOXED = 0;
     public static final int STATE_SANDBOXED = 1;
     public static final int STATE_MAIN_COPY = 2;
+    public static final int STATE_PARTIALLY_SANDBOXED = 3;
 
     private final Context mContext;
-    private List<String> mSandboxApps = Collections.emptyList();
+    private Map<String, Long> mSandboxCounts = Collections.emptyMap();
 
     public AppStateSandboxedAppsBridge(Context context, ApplicationsState appState,
             Callback callback) {
@@ -38,14 +42,10 @@ public class AppStateSandboxedAppsBridge extends AppStateBaseBridge {
 
     @Override
     protected void loadAllExtraInfo() {
-        int sandboxUserId = Utils.getSandboxUserId(mContext);
-        if (sandboxUserId != -1) {
-            mSandboxApps = mContext.getPackageManager()
-                    .getInstalledPackagesAsUser(0, sandboxUserId).stream()
-                    .map(x -> x.packageName).toList();
-        } else {
-            mSandboxApps = Collections.emptyList();
-        }
+        mSandboxCounts = Utils.getSandboxUserIds(mContext).stream()
+                .flatMap(id -> mContext.getPackageManager()
+                        .getInstalledPackagesAsUser(0, id).stream())
+                .collect(Collectors.groupingBy(x -> x.packageName, Collectors.counting()));
 
         final List<AppEntry> allApps = mAppSession.getAllApps();
         for (int i = 0; i < allApps.size(); i++) {
@@ -61,7 +61,9 @@ public class AppStateSandboxedAppsBridge extends AppStateBaseBridge {
         } else if (UserHandle.getUserId(uid) == UserHandle.myUserId()
                 && AppStateClonedAppsBridge.isCloneable(mContext, app.info,
                         Collections.emptyList())) {
-            app.extraInfo = mSandboxApps.contains(pkg) ? STATE_MAIN_COPY : STATE_NOT_SANDBOXED;
+            long count = mSandboxCounts.getOrDefault(pkg, 0L);
+            app.extraInfo = count >= SandboxBackend.MAX_SANDBOX_INSTANCES ? STATE_MAIN_COPY
+                    : count > 0 ? STATE_PARTIALLY_SANDBOXED : STATE_NOT_SANDBOXED;
         } else {
             app.extraInfo = null;
         }
