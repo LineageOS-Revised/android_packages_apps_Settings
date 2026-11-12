@@ -150,6 +150,32 @@
     </PreferenceCategory>
 
     <PreferenceCategory
+        android:key="kernel_category"
+        android:title="@string/kernel_category"
+        android:order="-355"
+        settings:isPreferenceVisible="@bool/config_kernelTunables">
+
+        <ListPreference
+            android:key="cpu_governor"
+            android:title="@string/cpu_governor_title"
+            android:dialogTitle="@string/cpu_governor_title"
+            android:entries="@array/cpu_governor_entries"
+            android:entryValues="@array/cpu_governor_values"
+            android:persistent="false"
+            settings:controller="com.android.settings.system.KernelTunablePreferenceController" />
+
+        <ListPreference
+            android:key="io_scheduler"
+            android:title="@string/io_scheduler_title"
+            android:dialogTitle="@string/io_scheduler_title"
+            android:entries="@array/io_scheduler_entries"
+            android:entryValues="@array/io_scheduler_values"
+            android:persistent="false"
+            settings:controller="com.android.settings.system.KernelTunablePreferenceController" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
         android:key="advanced_category"
         android:title="@string/advanced_apps"
         android:order="-350"

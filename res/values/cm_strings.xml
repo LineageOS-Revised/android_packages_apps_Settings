@@ -273,4 +273,38 @@
     <string name="resume_sandbox">Resume sandbox</string>
     <string name="delete_sandbox">Delete sandbox</string>
     <string name="delete_sandbox_failure">Deleting sandbox failed</string>
+
+    <!-- Developer options: Kernel -->
+    <string name="kernel_category">Kernel</string>
+    <string name="kernel_tunable_default">Kernel default</string>
+    <string name="cpu_governor_title">CPU governor</string>
+    <string-array name="cpu_governor_entries" translatable="false">
+        <item>@string/kernel_tunable_default</item>
+        <item>walt</item>
+        <item>schedutil</item>
+        <item>performance</item>
+        <item>powersave</item>
+    </string-array>
+    <string-array name="cpu_governor_values" translatable="false">
+        <item></item>
+        <item>walt</item>
+        <item>schedutil</item>
+        <item>performance</item>
+        <item>powersave</item>
+    </string-array>
+    <string name="io_scheduler_title">I/O scheduler</string>
+    <string-array name="io_scheduler_entries" translatable="false">
+        <item>@string/kernel_tunable_default</item>
+        <item>none</item>
+        <item>mq-deadline</item>
+        <item>kyber</item>
+        <item>bfq</item>
+    </string-array>
+    <string-array name="io_scheduler_values" translatable="false">
+        <item></item>
+        <item>none</item>
+        <item>mq-deadline</item>
+        <item>kyber</item>
+        <item>bfq</item>
+    </string-array>
 </resources>
